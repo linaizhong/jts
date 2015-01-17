@@ -234,7 +234,7 @@ In jts we heavily use the with java 8 newly introduces [streams](http://docs.ora
 
 ### Wall clock & simulation time
 
-The actual simulation of the [Net][Net.java] advances in discrete quantities of time. Meanwhile the [Window][Window.java] advances according to the time the user experiences in real life. Those two components are decoupled with the getWallClockSimulationState() method in [Simulation][Simulation.java]
+The actual [simulation][Simulation.java] of the [Net][Net.java] advances in discrete quantities of time. Meanwhile the [Window][Window.java] advances according to the time the user experiences in real life. Those two components are decoupled with the getWallClockSimulationState() method in [Simulation][Simulation.java]
 
 ![times](https://raw.githubusercontent.com/winki/jts/master/doc/times.png)
 
@@ -454,6 +454,7 @@ winki
 
 This software and the underlying source code is licensed under the [MIT license][license].
 
+[Simulation.java]:src/main/java/ch/bfh/ti/jts/simulation/Simulation.java
 [Simulatable.java]:src/main/java/ch/bfh/ti/jts/simulation/Simulatable.java
 
 [Thinkable.java]:src/main/java/ch/bfh/ti/jts/ai/Thinkable.java
