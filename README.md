@@ -132,7 +132,7 @@ We decided to model not only straight roads with multiple lanes but also junctio
 
 ### Parallelization
 
-As mentioned in the section [Application logic](#application-logic) jts is structured in layers. The class which keeps track of them is [Layers.java](src/main/java/ch/bfh/ti/jts/utils/layers/Layers.java). Its usage is shown below.
+Jts is structured in layers. The class which keeps track of them is [Layers.java](src/main/java/ch/bfh/ti/jts/utils/layers/Layers.java). Its usage is shown below.
 
 ![layers class](https://raw.githubusercontent.com/winki/jts/master/doc/layers.png)
 
@@ -222,6 +222,8 @@ In jts we heavily use the with java 8 newly introduces [streams](http://docs.ora
 * orange: park
 
 ### Dijekstra for path finding
+
+![dijekstra](https://raw.githubusercontent.com/winki/jts/master/doc/dijekstra.png)
 
 ### Wall clock & simulation time
 

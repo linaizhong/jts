@@ -60,6 +60,8 @@ public class GPS<V extends DirectedGraphVertex<V, E>, E extends DirectedGraphEdg
      * @see http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
      * @param source
      *            the vertex to start search with
+     * @return a map which represents the path from every vertex in the map to
+     *         the source
      */
     private Map<V, V> dijekstra(final V source) {
         // initialize
