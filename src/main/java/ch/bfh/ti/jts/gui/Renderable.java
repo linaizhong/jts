@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.NavigableMap;
 
 import ch.bfh.ti.jts.data.Agent;
-import ch.bfh.ti.jts.data.Edge;
 import ch.bfh.ti.jts.data.Junction;
 import ch.bfh.ti.jts.data.Lane;
 import ch.bfh.ti.jts.data.Net;
@@ -27,11 +26,9 @@ public interface Renderable {
                                                     private static final long serialVersionUID = 1L;
                                                     
                                                     {
-                                                        put(Agent.class, 4);
-                                                        put(Lane.class, 3);
-                                                        put(Edge.class, 2);
+                                                        put(Agent.class, 2);
                                                         put(Junction.class, 1);
-                                                        put(Net.class, 0);
+                                                        put(Lane.class, 0);
                                                     }
                                                 };
     

@@ -1,6 +1,5 @@
 package ch.bfh.ti.jts.data;
 
-import java.awt.Graphics2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.Collection;
@@ -13,7 +12,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import ch.bfh.ti.jts.exceptions.ArgumentNullException;
-import ch.bfh.ti.jts.gui.Renderable;
 import ch.bfh.ti.jts.simulation.Simulatable;
 import ch.bfh.ti.jts.utils.Helpers;
 import ch.bfh.ti.jts.utils.graph.DirectedGraphEdge;
@@ -24,7 +22,7 @@ import ch.bfh.ti.jts.utils.graph.DirectedGraphEdge;
  * @author Enteee
  * @author winki
  */
-public class Edge extends Element implements SpawnLocation, DirectedGraphEdge<Edge, Junction>, Simulatable, Renderable {
+public class Edge extends Element implements SpawnLocation, DirectedGraphEdge<Edge, Junction>, Simulatable {
     
     private static final long      serialVersionUID = 1L;
     private static final Logger    log              = LogManager.getLogger(Edge.class);
@@ -114,11 +112,6 @@ public class Edge extends Element implements SpawnLocation, DirectedGraphEdge<Ed
             maxLenght = maxLane.get().getLength();
         }
         return maxLenght / getPriority();
-    }
-    
-    @Override
-    public void render(final Graphics2D g) {
-        // do nothing
     }
     
     @Override

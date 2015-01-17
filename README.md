@@ -26,20 +26,25 @@ This project is currently under heavy developement.
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [System context](#system-context)
-- [Documentation](#documentation)
-  - [Application logic](#application-logic)
-    - [Main & App & Simulation](#main-&-app-&-simulation)
+- [Code highlights](#code-highlights)
+- [Ideas & Thoughts](#ideas-&-thoughts)
+  - [Main Application logic](#main-application-logic)
+  - [Data model](#data-model)
+  - [Parallelization](#parallelization)
     - [Simulatables](#simulatables)
       - [layer 0](#layer-0)
       - [layer 1](#layer-1)
       - [layer 2](#layer-2)
       - [layer 3](#layer-3)
       - [layer 4](#layer-4)
-- [Code highlights](#code-highlights)
-- [Solved Problems](#solved-problems)
-  - [Data structure](#data-structure)
-  - [Parallelization](#parallelization)
+    - [Renderables](#renderables)
+      - [layer 0](#layer-0-1)
+      - [layer 1](#layer-1-1)
+      - [layer 2](#layer-2-1)
   - [Multithreading](#multithreading)
+  - [Dijekstra for path finding](#dijekstra-for-path-finding)
+  - [Wall clock & simulation time](#wall-clock-&-simulation-time)
+  - [](#)
   - [Agent intelligence](#agent-intelligence)
 - [Journal](#journal)
   - [Calendar week 39](#calendar-week-39)
@@ -69,11 +74,20 @@ This project is currently under heavy developement.
 
 ![system context](https://raw.githubusercontent.com/winki/jts/master/doc/systemcontext.png)
 
-## Documentation
+## Code highlights
 
-### Application logic
+* [Simulatable.java][Simulatable.java]: Simulation engine which is easily extensible with new elements.
+* [Command.java][Command.java]: Integrated console engine with commands that are easy extensible.
+  * Command autodiscovery with reflection
+* [Thinkable.java][Thinkable.java]: Easy interface for smart new agents.
+* [Importer.java][Importer.java]: Import road map data from [OpenStreetMap][osm].
+* [Window.java][Window.java]: Graphical user interface with 2D output.
+  * Allows scrolling and zooming
+  * Allows console input & selection of elements by clicking
 
-#### Main & App & Simulation
+## Ideas & Thoughts
+
+### Main Application logic
 
 * main()
 * Loads configuration
@@ -110,52 +124,6 @@ loop {
 end();
 ```
 
-#### Simulatables
-
-Idea: Every simulatabe (s) with layer (l) is only allowed to change element states of simulatables (s2) if s2.l < s.l or s2 == s. This allows parallel simulation of all the s in one l.
-
-##### layer 0
-
-* agent
-  1. apply agent decision
-  2. update agent pysics
-
-##### layer 1
-
-* lane
-  1. update position of agents in lane datastructure
-  2. do collisions of agent on lane
-
-##### layer 2
-
-* edge
-  1. switch agents between lanes on this edge
-
-##### layer 3
-
-* junction
-  1. select agent for despawning
-  2. reroute agents between edges
-
-##### layer 4
-
-* net
-  1. agent spawning
-  2. agent despawning
-
-## Code highlights
-
-* [Simulatable.java](src/main/java/ch/bfh/ti/jts/simulation/Simulatable.java): Simulation engine which is easily extensible with new elements.
-* [Command.java](src/main/java/ch/bfh/ti/jts/gui/console/commands/Command.java): Integrated console engine with commands that are easy extensible.
-  * Command autodiscovery with reflection
-* [Thinkable.java](src/main/java/ch/bfh/ti/jts/ai/Thinkable.java): Easy interface for smart new agents.
-* [Importer.java](src/main/java/ch/bfh/ti/jts/importer/Importer.java): Import road map data from [OpenStreetMap][osm].
-* [Window.java](src/main/java/ch/bfh/ti/jts/gui/Window.java): Graphical user interface with 2D output.
-  * Allows scrolling and zooming
-  * Allows console input & selection of elements by clicking
-
-## Solved Problems
-
 ### Data model
 
 Maybe the biggest decision in the beginning of our project was how to model the road network. The first input cam from our supervisor and was the approach of using a skip list to model a lane. The index should represent the position in meters on the lane.
@@ -176,7 +144,7 @@ As mentioned in the section [Application logic](#application-logic) jts is struc
 * Simulation gets the layering object from Net (instance: simulation time) by calling getSimulatables().
 * RenderPanel and Simulation delegate execution to all the elements in layering order. See code taken from Simulation.simulate() as example below.
   * [SortedSet<Integer>](http://docs.oracle.com/javase/7/docs/api/java/util/SortedSet.html) in Layers ensures total order according to natural order (for Integer '<') of layerKeys.
-  * .parallel().foreach() runs lambda-function in parallel, see [Multithreading](#multithreading)
+  * .parallel().foreach() runs lambda-function in parallel, see [Multithreading](#multithreading).
 ```java
     // delegate simulation to @{link Simulatable}s
     final Layers<Simulatable> simulatables = simulateNet.getSimulatable();
@@ -188,13 +156,70 @@ As mentioned in the section [Application logic](#application-logic) jts is struc
 
 ```
 
-The paradigm mentioned in this section allows us for parallel simulation of all the element in one layer. Due to the simple that there is no win java to enforce the paradigm we had to be very careful when writing new code. 
+The parallelization paradigm is: Every simulatabe (s) with layer (l) is only allowed to change element states of simulatables (s2) if s2.l < s.l or s2 == s. This allows parallel simulation of all the simulatables in one layer. Due to the simple fact that there is no way java to enforce the paradigm we had to be very careful when writing new code. 
+
+#### Simulatables
+
+All known simulation layers and residing classes.
+
+##### layer 0
+
+* [Agent][Agent.java]
+  1. apply agent decision
+  2. update agent pysics
+
+##### layer 1
+
+* [Lane][Lane.java]
+  1. update position of agents in lane datastructure
+  2. do collisions of agent on lane
+
+##### layer 2
+
+* [Edge][Edge.java]
+  1. switch agents between lanes on this edge
+
+##### layer 3
+
+* [Junction][Junction.java]
+  1. select agent for despawning
+  2. reroute agents between edges
+
+##### layer 4
+
+* [Net][Net.java]
+  1. agent spawning
+  2. agent despawning
+
+#### Renderables
+
+All knownt rendering layers and residig classes.
+
+##### layer 0
+
+* [Lane][Lane.java]
+  1. Draw lane according to [PolyShape][PolyShape.java]
+  2. Draw lane information
+
+##### layer 1
+
+* [Junction][Junction.java]
+  1. Fill gap between edges
+
+##### layer 2
+
+* [Agent][Agent.java]
+  1. Animate lane switching
+  2. Draw agent according to [PolyShape][PolyShape.java]
 
 ### Multithreading
 
-In jts we heavily use the with java 8 newly introduces [streams](http://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html). The [parallel()](http://docs.oracle.com/javase/8/docs/api/java/util/stream/BaseStream.html#parallel--) method in conjunction with lambda function are particularly useful for multithreading. As the jre regulates instantiation of worker threads automagically. The jre does quite a good job in scheduling work for all the workers as they are all more or less under the same load.
+In jts we heavily use the with java 8 newly introduces [streams](http://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html). The [parallel()](http://docs.oracle.com/javase/8/docs/api/java/util/stream/BaseStream.html#parallel--) method in conjunction with lambda function are particularly useful for multithreading. The jre regulates instantiation of worker threads automagically and does quite a good job in scheduling work for all the workers as they are all more or less under the same load.
 
 ![load distribugion](https://raw.githubusercontent.com/winki/jts/master/doc/load_distribution.png)
+
+* green: running
+* orange: park
 
 ### Dijekstra for path finding
 
@@ -417,7 +442,21 @@ Enteee
 
 This software and the underlying source code is licensed under the [MIT license][license].
 
+[Simulatable.java]:src/main/java/ch/bfh/ti/jts/simulation/Simulatable.java
 
+[Thinkable.java]:src/main/java/ch/bfh/ti/jts/ai/Thinkable.java
+
+[Importer.java]:src/main/java/ch/bfh/ti/jts/importer/Importer.java
+
+[Command.java]:src/main/java/ch/bfh/ti/jts/gui/console/commands/Command.java
+[PolyShape.java]:src/main/java/ch/bfh/ti/jts/gui/PolyShape.java
+[Window.java]:src/main/java/ch/bfh/ti/jts/gui/Window.java
+
+[Net.java]:src/main/java/ch/bfh/ti/jts/data/Net.java
+[Junction.java]:src/main/java/ch/bfh/ti/jts/data/Junction.java
+[Edge.java]:src/main/java/ch/bfh/ti/jts/data/Edge.java
+[Lane.java]:src/main/java/ch/bfh/ti/jts/data/Lane.java
+[Agent.java]:src/main/java/ch/bfh/ti/jts/data/Agent.java
 
 
 [osm]:http://www.openstreetmap.ch/
