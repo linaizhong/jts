@@ -194,7 +194,7 @@ The paradigm mentioned in this section allows us for parallel simulation of all 
 
 In jts we heavily use the with java 8 newly introduces [streams](http://docs.oracle.com/javase/8/docs/api/java/util/stream/Stream.html). The [parallel()](http://docs.oracle.com/javase/8/docs/api/java/util/stream/BaseStream.html#parallel--) method in conjunction with lambda function are particularly useful for multithreading. As the jre regulates instantiation of worker threads automagically. The jre does quite a good job in scheduling work for all the workers as they are all more or less under the same load.
 
-![load distribugion]((https://raw.githubusercontent.com/winki/jts/master/doc/load_distribution.png)
+![load distribugion](https://raw.githubusercontent.com/winki/jts/master/doc/load_distribution.png)
 
 ### Dijekstra for path finding
 
