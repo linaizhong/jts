@@ -11,17 +11,10 @@ import com.beust.jcommander.Parameter;
  * @author winki
  */
 public abstract class Command {
-    
+
     @Parameter(names = { "-help", "-h" }, description = "Help")
     public boolean help = false;
-    
-    /**
-     * Gets the name of the command.
-     *
-     * @return name of the command
-     */
-    public abstract String getName();
-    
+
     /**
      * Executes the command.
      *
@@ -30,7 +23,14 @@ public abstract class Command {
      * @return console output
      */
     public abstract Optional<String> execute(Object executor);
-    
+
+    /**
+     * Gets the name of the command.
+     *
+     * @return name of the command
+     */
+    public abstract String getName();
+
     /**
      * The type of classes this command will be sent to.
      *

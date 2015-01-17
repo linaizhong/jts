@@ -17,23 +17,23 @@ import ch.bfh.ti.jts.data.Net;
  * @author winki
  */
 public interface Simulatable {
-    
+
     /**
      * Known classes to layer mappings
      */
     static Map<Class<?>, Integer> KNOWN_CLASSES = new HashMap<Class<?>, Integer>() {
-                                                    
-                                                    private static final long serialVersionUID = 1L;
-                                                    
-                                                    {
-                                                        put(Agent.class, 0);
-                                                        put(Lane.class, 1);
-                                                        put(Edge.class, 2);
-                                                        put(Junction.class, 3);
-                                                        put(Net.class, 4);
-                                                    }
-                                                };
-    
+
+        private static final long serialVersionUID = 1L;
+
+        {
+            put(Agent.class, 0);
+            put(Lane.class, 1);
+            put(Edge.class, 2);
+            put(Junction.class, 3);
+            put(Net.class, 4);
+        }
+    };
+
     /**
      * The simulation layer of the object. 0: Simulate first 1: Simulate second,
      * ...
@@ -46,7 +46,7 @@ public interface Simulatable {
         }
         return KNOWN_CLASSES.get(getClass());
     }
-    
+
     /**
      * Called in each simulation step in parallel for each object of the
      * implementing class

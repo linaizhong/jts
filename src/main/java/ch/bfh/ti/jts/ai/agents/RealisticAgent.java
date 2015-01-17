@@ -22,7 +22,7 @@ import ch.bfh.ti.jts.utils.Helpers;
  * @author winki
  */
 public class RealisticAgent extends RandomAgent {
-    
+
     private static final long   serialVersionUID = 1L;
     private static final Logger log              = LogManager.getLogger(RealisticAgent.class);
     /**
@@ -55,24 +55,24 @@ public class RealisticAgent extends RandomAgent {
      * Random object.
      */
     private final Random        rand;
-    
+
     public RealisticAgent() {
         super();
         rand = new Random(getId());
     }
-    
+
     private boolean canChangeLane(final Lane lane) {
         return getLaneChaneVelocity(lane) != -1;
     }
-    
+
     private boolean doesNiggle() {
         return rand.nextDouble() < NIGGLE_Chance;
     }
-    
+
     private double getAccelerationToReachVelocity(final double goalVelocity) {
         return (goalVelocity - getVelocity()) / Simulation.SIMULATION_STEP_DURATION;
     }
-    
+
     private double getLaneChaneVelocity(final Lane lane) {
         if (lane != null) {
             // minimal velocity if fully slow down
@@ -93,19 +93,19 @@ public class RealisticAgent extends RandomAgent {
         }
         return -1; // no lane change possible
     }
-    
+
     private double getMaxPossibleVelocityNextStep(final Agent agent) {
         final Vehicle vehicle = agent.getVehicle();
         final double maxPossibleVelocityWithoutLimit = agent.getVelocity() + Simulation.SIMULATION_STEP_DURATION * vehicle.getMaxAcceleration();
         return Helpers.clamp(maxPossibleVelocityWithoutLimit, vehicle.getMinVelocity(), vehicle.getMaxVelocity());
     }
-    
+
     private double getMinPossibleVelocityNextStep(final Agent agent) {
         final Vehicle vehicle = agent.getVehicle();
         final double minPossibleVelocityWithoutLimit = agent.getVelocity() + Simulation.SIMULATION_STEP_DURATION * vehicle.getMinAcceleration();
         return Helpers.clamp(minPossibleVelocityWithoutLimit, vehicle.getMinVelocity(), vehicle.getMaxVelocity());
     }
-    
+
     /**
      * Time the agent will wait, till it tries to overtake the other agent. For
      * patienceFactor 1, the agent will wait forever. For patienceFactor 0, the
@@ -115,7 +115,7 @@ public class RealisticAgent extends RandomAgent {
     private double getPatientTime() {
         assert PATIENCE_FACTOR >= 0.0;
         assert PATIENCE_FACTOR <= 1.0;
-        
+
         if (PATIENCE_FACTOR == 0.0) {
             // agent will wait forever
             return Double.MAX_VALUE;
@@ -126,7 +126,7 @@ public class RealisticAgent extends RandomAgent {
         }
         return Math.pow(300, PATIENCE_FACTOR);
     }
-    
+
     /**
      * Gets the secure velocity to not hit the next agent and to hold the secure
      * distance
@@ -137,7 +137,7 @@ public class RealisticAgent extends RandomAgent {
      */
     private double getSecureVelocity(final Agent o) {
         assert o != null;
-        
+
         // where is other agent in the specified amount of time if he decelerate
         // by the maximum?
         final double minVelocityOther = Helpers.clamp(o.getVelocity() + Simulation.SIMULATION_STEP_DURATION * o.getVehicle().getMinAcceleration(), o.getVehicle().getMinVelocity(), o.getVehicle()
@@ -149,13 +149,13 @@ public class RealisticAgent extends RandomAgent {
         final double deltaDistance = oPos - getLanePosition();
         return (deltaDistance - stoppingDistance) / Simulation.SIMULATION_STEP_DURATION;
     }
-    
+
     private boolean isImpatient() {
         final double waitTime = impatienceCounter * Simulation.SIMULATION_STEP_DURATION;
         final double patientTime = getPatientTime();
         return waitTime >= patientTime;
     }
-    
+
     private double simulateMove(final double velocity) {
         final double distanceToDrive = velocity * Simulation.SIMULATION_STEP_DURATION;
         final double distanceOnLaneLeft = getAbsoluteDistanceOnLaneLeft();
@@ -168,7 +168,7 @@ public class RealisticAgent extends RandomAgent {
             return getLane().getLength();
         }
     }
-    
+
     private boolean testLaneChange(final Lane lane, final double velocity) {
         // where would the agent be?
         final double positionOnLane = simulateMove(velocity);
@@ -193,16 +193,16 @@ public class RealisticAgent extends RandomAgent {
         // no possible crash detected
         return true;
     }
-    
+
     @Override
     public void think() {
         super.think();
-        
+
         assert Simulation.SIMULATION_STEP_DURATION > 0;
-        
+
         // current properties of this agent
         final double maxPossibleVelocityNextStep = getMaxPossibleVelocityNextStep(this);
-        
+
         // calculate secure velocity to not hit any of the agents in front of
         // this agent on the same lane
         double secureMaxVelocity = maxPossibleVelocityNextStep;
@@ -210,7 +210,7 @@ public class RealisticAgent extends RandomAgent {
             final double secureVelocity = getSecureVelocity(o);
             secureMaxVelocity = Math.min(secureMaxVelocity, secureVelocity);
         }
-        
+
         // does the agent has to slow down because of a slow agent in front of
         // him?
         final boolean hasToSlowDownBecauseOfOtherAgent = secureMaxVelocity < maxPossibleVelocityNextStep;
@@ -223,7 +223,7 @@ public class RealisticAgent extends RandomAgent {
         }
         log.debug(" securemax v: " + secureMaxVelocity + " " + this);
         double targetAcceleration = getAccelerationToReachVelocity(secureMaxVelocity);
-        
+
         // agent does only niggle when he is not impatient
         if (!isImpatient()) {
             if (doesNiggle()) {
@@ -236,13 +236,13 @@ public class RealisticAgent extends RandomAgent {
                 }
             }
         }
-        
+
         // set max acceleration
         getDecision().setAcceleration(targetAcceleration);
-        
+
         // check lane switching possibilities
         LaneChange direction = LaneChange.NONE;
-        
+
         // does the agent want to overtake?
         final boolean isImpatient = isImpatient();
         if (isImpatient) {
@@ -262,14 +262,14 @@ public class RealisticAgent extends RandomAgent {
             }
         }
         getDecision().setLaneChange(direction);
-        
+
         getDecision().setTurning(null); // no direct switch. use gps...
-        Junction destination = getSpawnInfo().getEndJunction();
+        final Junction destination = getSpawnInfo().getEndJunction();
         if (destination != null) {
             getDecision().setDestination(destination);
         }
     }
-    
+
     /**
      * Is there a chance that the two agents will crash?
      *

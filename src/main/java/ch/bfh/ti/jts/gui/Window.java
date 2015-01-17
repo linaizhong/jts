@@ -41,27 +41,25 @@ import ch.bfh.ti.jts.utils.layers.Layers;
 
 /**
  * Window for the application.
- * 
+ *
  * @author Enteee
  * @author winki
  */
 public class Window {
-    
-    private static final Logger log = LogManager.getLogger(Window.class);
-    
+
     private class FrameComponentAdapter extends ComponentAdapter {
-        
+
         @Override
         public void componentResized(final ComponentEvent componentEvent) {
             windoww = renderPanel.getWidth();
             windowh = renderPanel.getHeight();
         }
     }
-    
+
     private class RenderPanel extends JPanel {
-        
+
         private static final long serialVersionUID = 1L;
-        
+
         @Override
         public void paintComponent(final Graphics g) {
             final Graphics2D g2d = (Graphics2D) g;
@@ -96,7 +94,7 @@ public class Window {
                 }
                 // center on screen
                 g2d.transform(AffineTransform.getTranslateInstance(windoww / 2, windowh / 2));
-                
+
                 try {
                     // save inverse transformation to get world coordinates from
                     // screen coordinates later
@@ -104,7 +102,7 @@ public class Window {
                 } catch (final NoninvertibleTransformException e) {
                     log.error("Can not invert world-->screen matrix.", e);
                 }
-                
+
                 // render everything
                 final Layers<Renderable> renderables = wallClockSimulationState.getRenderable();
                 for (final int layer : renderables.getLayersIterator()) {
@@ -115,10 +113,10 @@ public class Window {
                 // render console
                 g2d.setTransform(tConsole);
                 console.render(g2d);
-                
+
                 // Let the OS have a little time...
                 Thread.yield();
-                
+
                 // repaint after every step
                 frame.repaint();
             } finally {
@@ -128,35 +126,35 @@ public class Window {
             }
         }
     }
-    
+
     private class RenderPanelKeyAdapter extends KeyAdapter {
-        
+
         @Override
         public void keyPressed(final KeyEvent keyEvent) {
             final int keyCode = keyEvent.getKeyCode();
             keys.add(keyCode);
         }
-        
+
         @Override
         public void keyReleased(final KeyEvent keyEvent) {
             final int keyCode = keyEvent.getKeyCode();
             keys.remove(keyCode);
         }
-        
+
         @Override
         public void keyTyped(final KeyEvent keyEvent) {
             // keyCode is undefinet in this event
             // so we use the character instead
             console.keyTyped(keyEvent.getKeyChar());
         }
-        
+
     }
-    
+
     private class RenderPanelMouseAdapter extends MouseAdapter {
-        
+
         private boolean isDown            = false;
         private Point   mousePressedPoint = new Point();
-        
+
         @Override
         public void mouseDragged(final MouseEvent e) {
             if (isDown) {
@@ -166,7 +164,7 @@ public class Window {
                 mousePressedPoint = e.getPoint();
             }
         }
-        
+
         @Override
         public void mousePressed(final MouseEvent e) {
             mousePressedPoint = e.getPoint();
@@ -189,12 +187,12 @@ public class Window {
                 });
             });
         }
-        
+
         @Override
         public void mouseReleased(final MouseEvent e) {
             isDown = false;
         }
-        
+
         @Override
         public void mouseWheelMoved(final MouseWheelEvent mouseEvent) {
             final Point mousePoint = mouseEvent.getPoint();
@@ -220,47 +218,49 @@ public class Window {
             }
         }
     }
-    
-    /**
-     * Zoom delta. Determines how much to change the zoom when scrolling. Also
-     * sets the minimum zoom
-     */
-    private static final double ZOOM_DELTA   = 0.05;
-    
-    /**
-     * The click radius when selectimg elements;
-     */
-    private static final double CLICK_RADIUS = Config.getInstance().getDouble("click.radius", 30.0, 0.0, 1000.0);
-    
-    private static final Window INSTANCE     = new Window();
-    
+
     /**
      * singleton
-     * 
+     *
      * @return instance
      */
     public static Window getInstance() {
         return INSTANCE;
     }
-    private final JFrame       frame;
-    private final JPanel       renderPanel;
-    private int                windoww                = 1000;
-    private int                windowh                = 600;
+
+    private static final Logger log                    = LogManager.getLogger(Window.class);
+
+    /**
+     * Zoom delta. Determines how much to change the zoom when scrolling. Also
+     * sets the minimum zoom
+     */
+    private static final double ZOOM_DELTA             = 0.05;
+
+    /**
+     * The click radius when selectimg elements;
+     */
+    private static final double CLICK_RADIUS           = Config.getInstance().getDouble("click.radius", 30.0, 0.0, 1000.0);
+
+    private static final Window INSTANCE               = new Window();
+    private final JFrame        frame;
+    private final JPanel        renderPanel;
+    private int                 windoww                = 1000;
+    private int                 windowh                = 600;
     /**
      * Offset in x and y direction from (0/0)
      */
-    private final Point2D      offset                 = new Point2D.Double();
+    private final Point2D       offset                 = new Point2D.Double();
     /**
      * Zoom factor
      */
-    private double             zoom                   = 1;
-    private AffineTransform    t                      = new AffineTransform();
-    private AffineTransform    screenToWorldTransform = new AffineTransform();
-    
-    private final Point2D      zoomCenter             = new Point2D.Double();
-    private final Set<Integer> keys                   = new HashSet<Integer>();
-    private final Console      console                = new JtsConsole();
-    
+    private double              zoom                   = 1;
+    private AffineTransform     t                      = new AffineTransform();
+    private AffineTransform     screenToWorldTransform = new AffineTransform();
+
+    private final Point2D       zoomCenter             = new Point2D.Double();
+    private final Set<Integer>  keys                   = new HashSet<Integer>();
+    private final Console       console                = new JtsConsole();
+
     public Window() {
         frame = new JFrame();
         frame.setTitle("JavaTrafficSimulator");
@@ -277,13 +277,13 @@ public class Window {
         renderPanel.addMouseWheelListener(renderPanelMouseAdaptor);
         frame.setContentPane(renderPanel);
     }
-    
+
     public Console getConsole() {
         return console;
     }
-    
+
     public void setVisible(final boolean visible) {
         frame.setVisible(visible);
     }
-    
+
 }

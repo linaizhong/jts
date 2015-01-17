@@ -17,14 +17,17 @@ import ch.bfh.ti.jts.utils.Config;
 
 /**
  * Runnable application class.
- * 
+ *
  * @author Enteee
  * @author winki
  */
 public class App implements Runnable {
-    
+
+    public static App getInstance() {
+        return instance;
+    }
+
     public static final Font     FONT               = new Font(Config.getInstance().getValue("app.font.familiy", "sans-serif"), Font.PLAIN, Config.getInstance().getInt("app.font.size", 4, 1, 100));
-    
     /**
      * Format string used for net loading.
      */
@@ -37,75 +40,27 @@ public class App implements Runnable {
      * Commands the simulation should execute.
      */
     private final Queue<Command> commands           = new ConcurrentLinkedQueue<>();
+
     /**
      * Singleton
      */
     private static App           instance           = new App();
-    
-    public static App getInstance() {
-        return instance;
+    public boolean               isRunning          = false;
+    private String               netName;
+    private Simulation           simulation;
+
+    public void addCommand(final Command command) {
+        commands.add(command);
     }
-    public boolean     isRunning = false;
-    private String     netName;
-    private Simulation simulation;
-    
-    public Simulation getSimulation() {
-        return simulation;
-    }
-    
-    public void loadSimulation(final String netName) {
-        if (netName == null) {
-            throw new IllegalArgumentException("netName");
-        }
-        this.netName = netName;
-        
-        // import net
-        final NetImporter netImporter = new NetImporter();
-        final Net net = netImporter.importData(String.format(NET_LOAD_FORMAT, this.netName));
-        
-        // import routes data
-        final RoutesImporter routesImporter = new RoutesImporter();
-        routesImporter.setNet(net);
-        final Collection<SpawnInfo> routes = routesImporter.importData(String.format(ROUTES_LOAD_FORMAT, this.netName));
-        net.addRoutes(routes);
-        simulation = new Simulation(net);
-    }
-    
+
     private void end() {
         // free resources or clean up stuff...
     }
-    
-    private void init() {
-        if (simulation == null) {
-            throw new RuntimeException("simulation not loaded");
-        }
-        Window.getInstance().setVisible(true);
-    }
-    
-    private boolean isRunning() {
-        return isRunning;
-    }
-    
-    public void restart() {
-        loadSimulation(netName); // load same net again
-    }
-    
-    @Override
-    public void run() {
-        isRunning = true;
-        init();
-        while (isRunning() && !Thread.interrupted()) {
-            executeCommands();
-            simulation.tick();
-        }
-        end();
-    }
-    
+
     private void executeCommands() {
         while (commands.size() > 0) {
             final Command command = commands.poll();
-            @SuppressWarnings("unused")
-            final Class<?> targetType = command.getTargetType();
+            command.getTargetType();
             final Console console = Window.getInstance().getConsole();
             if (command.getTargetType() == App.class) {
                 // command for app
@@ -116,8 +71,52 @@ public class App implements Runnable {
             }
         }
     }
-    
-    public void addCommand(final Command command) {
-        commands.add(command);
+
+    public Simulation getSimulation() {
+        return simulation;
+    }
+
+    private void init() {
+        if (simulation == null) {
+            throw new RuntimeException("simulation not loaded");
+        }
+        Window.getInstance().setVisible(true);
+    }
+
+    private boolean isRunning() {
+        return isRunning;
+    }
+
+    public void loadSimulation(final String netName) {
+        if (netName == null) {
+            throw new IllegalArgumentException("netName");
+        }
+        this.netName = netName;
+
+        // import net
+        final NetImporter netImporter = new NetImporter();
+        final Net net = netImporter.importData(String.format(NET_LOAD_FORMAT, this.netName));
+
+        // import routes data
+        final RoutesImporter routesImporter = new RoutesImporter();
+        routesImporter.setNet(net);
+        final Collection<SpawnInfo> routes = routesImporter.importData(String.format(ROUTES_LOAD_FORMAT, this.netName));
+        net.addRoutes(routes);
+        simulation = new Simulation(net);
+    }
+
+    public void restart() {
+        loadSimulation(netName); // load same net again
+    }
+
+    @Override
+    public void run() {
+        isRunning = true;
+        init();
+        while (isRunning() && !Thread.interrupted()) {
+            executeCommands();
+            simulation.tick();
+        }
+        end();
     }
 }

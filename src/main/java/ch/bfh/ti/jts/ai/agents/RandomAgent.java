@@ -15,18 +15,28 @@ import ch.bfh.ti.jts.data.Vehicle;
 
 /**
  * Agent which decides always randomly.
- * 
+ *
  * @author Enteee
  * @author winki
  */
 public class RandomAgent extends Agent {
-    
+
     private static final long serialVersionUID = 1L;
-    
+
     public RandomAgent() {
         super();
     }
-    
+
+    private double getRandomAcceleration() {
+        final Vehicle vehicle = getVehicle();
+        return ThreadLocalRandom.current().nextDouble() * (vehicle.getMaxAcceleration() - vehicle.getMinAcceleration()) + vehicle.getMinAcceleration();
+    }
+
+    private LaneChange getRandomLaneChange() {
+        final List<LaneChange> values = Collections.unmodifiableList(Arrays.asList(LaneChange.values()));
+        return values.get(ThreadLocalRandom.current().nextInt(values.size()));
+    }
+
     @Override
     public void think() {
         getDecision().setAcceleration(getRandomAcceleration());
@@ -40,15 +50,5 @@ public class RandomAgent extends Agent {
             final Lane nextLane = nextLanes.get(ThreadLocalRandom.current().nextInt(nextLanes.size()));
             getDecision().setTurning(nextLane);
         }
-    }
-    
-    private double getRandomAcceleration() {
-        Vehicle vehicle = getVehicle();
-        return ThreadLocalRandom.current().nextDouble() * (vehicle.getMaxAcceleration() - vehicle.getMinAcceleration()) + vehicle.getMinAcceleration();
-    }
-    
-    private LaneChange getRandomLaneChange() {
-        final List<LaneChange> values = Collections.unmodifiableList(Arrays.asList(LaneChange.values()));
-        return values.get(ThreadLocalRandom.current().nextInt(values.size()));
     }
 }

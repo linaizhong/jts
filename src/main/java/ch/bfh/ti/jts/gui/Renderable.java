@@ -12,26 +12,26 @@ import ch.bfh.ti.jts.data.Net;
 
 /**
  * For all renderable elements.
- * 
+ *
  * @author Enteee
  * @author winki
  */
 public interface Renderable {
-    
+
     /**
      * Known classes to layer mappings
      */
     static Map<Class<?>, Integer> KNOWN_CLASSES = new HashMap<Class<?>, Integer>() {
-                                                    
-                                                    private static final long serialVersionUID = 1L;
-                                                    
-                                                    {
-                                                        put(Agent.class, 2);
-                                                        put(Junction.class, 1);
-                                                        put(Lane.class, 0);
-                                                    }
-                                                };
-    
+
+        private static final long serialVersionUID = 1L;
+
+        {
+            put(Agent.class, 2);
+            put(Junction.class, 1);
+            put(Lane.class, 0);
+        }
+    };
+
     /**
      * The rendering layer of the object. 0: Background 1: First layer
      *
@@ -43,7 +43,7 @@ public interface Renderable {
         }
         return KNOWN_CLASSES.get(getClass());
     }
-    
+
     /**
      * Render the implementing object.
      *
@@ -51,7 +51,7 @@ public interface Renderable {
      *            the object to render with.
      */
     void render(final Graphics2D g);
-    
+
     /**
      * Render the implementing object.
      *

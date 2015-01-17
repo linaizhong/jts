@@ -2,7 +2,7 @@ package ch.bfh.ti.jts.ai;
 
 /**
  * Enumeration for the possible lane changes.
- * 
+ *
  * @author Enteee
  * @author winki
  */

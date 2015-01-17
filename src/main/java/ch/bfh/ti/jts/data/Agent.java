@@ -80,7 +80,7 @@ public abstract class Agent extends Element implements Thinkable, Simulatable, R
     
     public Agent() {
         super("Agent");
-        this.color = getRandomColor();
+        color = getRandomColor();
     }
     
     /**
@@ -91,6 +91,13 @@ public abstract class Agent extends Element implements Thinkable, Simulatable, R
         collisionCount++;
     }
     
+    /**
+     * @return the absolute distance to the end of the line.
+     */
+    public double getAbsoluteDistanceOnLaneLeft() {
+        return getLane().getLength() - getLanePosition();
+    }
+    
     public double getAcceleration() {
         return acceleration;
     }
@@ -99,18 +106,13 @@ public abstract class Agent extends Element implements Thinkable, Simulatable, R
         return collisionCount;
     }
     
-    private Color getRandomColor() {
-        int index = ThreadLocalRandom.current().nextInt(colors.length);
-        return colors[index];
-    }
-    
     /**
      * Gets the color of the agent. Mode is configurable.
      *
      * @return color
      */
     private Color getColor() {
-        String mode = Config.getInstance().getEnum("agent.render.colormode", new String[] { "normal", "velocity" });
+        final String mode = Config.getInstance().getEnum("agent.render.colormode", new String[] { "normal", "velocity" });
         if ("normal".equals(mode)) {
             return color;
         }
@@ -136,11 +138,6 @@ public abstract class Agent extends Element implements Thinkable, Simulatable, R
         return lane;
     }
     
-    @Override
-    public Point2D getPosition() {
-        return getLane().getPolyShape().getRelativePosition(getRelativeLanePosition());
-    }
-    
     /**
      * @return absolute position on the lane. From the start to the current
      *         position of the agent.
@@ -149,15 +146,14 @@ public abstract class Agent extends Element implements Thinkable, Simulatable, R
         return lanePosition;
     }
     
-    public void setLanePosition(final double lanePosition) {
-        this.lanePosition = lanePosition;
+    @Override
+    public Point2D getPosition() {
+        return getLane().getPolyShape().getRelativePosition(getRelativeLanePosition());
     }
     
-    /**
-     * @return the absolute distance to the end of the line.
-     */
-    public double getAbsoluteDistanceOnLaneLeft() {
-        return getLane().getLength() - getLanePosition();
+    private Color getRandomColor() {
+        final int index = ThreadLocalRandom.current().nextInt(colors.length);
+        return colors[index];
     }
     
     /**
@@ -221,13 +217,9 @@ public abstract class Agent extends Element implements Thinkable, Simulatable, R
     public boolean isLaneChangeCandidate() {
         //@formatter:off
         return  getVelocity() > 0
-                && ( 
-                        getDecision().getLaneChange() == LaneChange.RIGHT
-                        && getLane().getRightLane().isPresent() 
-                    ) || (
-                        getDecision().getLaneChange() == LaneChange.LEFT
-                        && getLane().getLeftLane().isPresent()
-                   );
+                && getDecision().getLaneChange() == LaneChange.RIGHT
+                && getLane().getRightLane().isPresent() || getDecision().getLaneChange() == LaneChange.LEFT
+                && getLane().getLeftLane().isPresent();
         //@formatter:on
     }
     
@@ -259,9 +251,9 @@ public abstract class Agent extends Element implements Thinkable, Simulatable, R
             final double acceleration = getAcceleration();
             int accelerationIndicatorLength = 0;
             if (acceleration > 0) {
-                accelerationIndicatorLength = (int) ((acceleration / getVehicle().getMaxAcceleration()) * ACCELERATION_DEBUG_INDICATOR_LENGTH);
+                accelerationIndicatorLength = (int) (acceleration / getVehicle().getMaxAcceleration() * ACCELERATION_DEBUG_INDICATOR_LENGTH);
             } else {
-                accelerationIndicatorLength = (int) -((acceleration / getVehicle().getMinAcceleration()) * ACCELERATION_DEBUG_INDICATOR_LENGTH);
+                accelerationIndicatorLength = (int) -(acceleration / getVehicle().getMinAcceleration() * ACCELERATION_DEBUG_INDICATOR_LENGTH);
             }
             g.setStroke(new BasicStroke(.5f));
             g.drawLine(0, 0, accelerationIndicatorLength, 0);
@@ -285,23 +277,19 @@ public abstract class Agent extends Element implements Thinkable, Simulatable, R
             g.translate(x, y);
             final double wallClockTime = App.getInstance().getSimulation().getWallClockTime();
             // check old simulation states
-            Optional<Element.ElementInTime> lastAgentStateBeforeLaneChange = simulationStates.headMap(wallClockTime).values().stream().map(oldNet -> {
-            return new Element.ElementInTime(oldNet.getSimulationTime(), oldNet.getElement(getId()));
-        }).filter(oldAgentInTime -> {
-            final Agent oldAgent = (Agent) oldAgentInTime.getElement();
-            // lane changed on same edge?
-            // @formatter:off
-            return  oldAgent != null
-                    && (
-                            (
-                                    getLane().getLeftLane().isPresent()
-                                    && oldAgent.getLane().getId() == getLane().getLeftLane().get().getId()
-                             ) || ( 
-                                     getLane().getRightLane().isPresent()
-                                     && oldAgent.getLane().getId() == getLane().getRightLane().get().getId()
-                             )
-                    );
-            // @formatter:on
+            final Optional<Element.ElementInTime> lastAgentStateBeforeLaneChange = simulationStates.headMap(wallClockTime).values().stream().map(oldNet -> {
+                return new Element.ElementInTime(oldNet.getSimulationTime(), oldNet.getElement(getId()));
+            }).filter(oldAgentInTime -> {
+                final Agent oldAgent = (Agent) oldAgentInTime.getElement();
+                // lane changed on same edge?
+                // @formatter:off
+                return  oldAgent != null
+                        && (
+                                getLane().getLeftLane().isPresent()
+                                && oldAgent.getLane().getId() == getLane().getLeftLane().get().getId() || getLane().getRightLane().isPresent()
+                                && oldAgent.getLane().getId() == getLane().getRightLane().get().getId()
+                                );
+                // @formatter:on
                     }).sorted().findFirst();
             if (lastAgentStateBeforeLaneChange.isPresent()) {
                 final double lastTimeBeforeChange = lastAgentStateBeforeLaneChange.get().getTime();
@@ -309,7 +297,7 @@ public abstract class Agent extends Element implements Thinkable, Simulatable, R
                 final double lastLaneChangeRelativeTime = wallClockTime - lastTimeBeforeChange;
                 final double changeLaneAnimationDurationLeft = CHANGE_LANE_ANIMATION_DURATION - lastLaneChangeRelativeTime;
                 if (changeLaneAnimationDurationLeft > 0) {
-                    final double extrapolatedRelativePosition = getRelativeLanePosition() + (getVelocity() * changeLaneAnimationDurationLeft) / getLane().getLength();
+                    final double extrapolatedRelativePosition = getRelativeLanePosition() + getVelocity() * changeLaneAnimationDurationLeft / getLane().getLength();
                     // only animate lane change if change is fully on this lane
                     if (extrapolatedRelativePosition >= 0 && extrapolatedRelativePosition <= 1) {
                         final Point2D extrapolatedPosition = getLane().getPolyShape().getRelativePosition(extrapolatedRelativePosition);
@@ -350,6 +338,10 @@ public abstract class Agent extends Element implements Thinkable, Simulatable, R
     
     public void setLane(final Lane lane) {
         this.lane = lane;
+    }
+    
+    public void setLanePosition(final double lanePosition) {
+        this.lanePosition = lanePosition;
     }
     
     /**

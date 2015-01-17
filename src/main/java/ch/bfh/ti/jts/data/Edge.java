@@ -23,10 +23,10 @@ import ch.bfh.ti.jts.utils.graph.DirectedGraphEdge;
  * @author winki
  */
 public class Edge extends Element implements SpawnLocation, DirectedGraphEdge<Edge, Junction>, Simulatable {
-    
+
     private static final long      serialVersionUID = 1L;
     private static final Logger    log              = LogManager.getLogger(Edge.class);
-    
+
     private final Junction         start;
     private final Junction         end;
     /**
@@ -34,7 +34,7 @@ public class Edge extends Element implements SpawnLocation, DirectedGraphEdge<Ed
      */
     private final int              priority;
     private final Collection<Lane> lanes;
-    
+
     public Edge(final String name, final Junction start, final Junction end, final int priority) {
         super(name);
         if (start == null) {
@@ -50,58 +50,58 @@ public class Edge extends Element implements SpawnLocation, DirectedGraphEdge<Ed
         this.priority = Helpers.clamp(priority, 1, Integer.MAX_VALUE);
         lanes = new LinkedList<Lane>();
     }
-    
+
     public void addLane(final Lane lane) {
         lanes.add(lane);
     }
-    
+
+    public Lane getDefaultLane(final Lane current) {
+        return current.getLanes().stream().filter(x -> x.comesFrom(current.getEdge().getEnd())).findFirst().orElse(null);
+    }
+
+    @Override
+    public double getDistance(final Point2D coordinates) {
+        return Helpers.distancePointToLine(coordinates, new Line2D.Double(getStart().getPosition(), getEnd().getPosition()));
+    }
+
     public Set<Agent> getEdgeLeaveCandidates() {
         return lanes.stream().flatMap(x -> x.getEdgeLeaveCandidates().stream()).collect(Collectors.toSet());
     }
-    
+
     @Override
     public Junction getEnd() {
         return end;
     }
-    
+
     public Lane getFirstLane() {
         return getLanes().stream().sequential().findFirst().orElse(null);
     }
-    
-    public Lane getDefaultLane(Lane current) {
-        return current.getLanes().stream().filter(x -> x.comesFrom(current.getEdge().getEnd())).findFirst().orElse(null);
-    }
-    
+
     public Collection<Lane> getLanes() {
         return lanes;
     }
-    
+
+    @Override
+    public Point2D getPosition() {
+        final Point2D start = getStart().getPosition();
+        final Point2D end = getEnd().getPosition();
+        return Helpers.pointBetween(start, end);
+    }
+
     public int getPriority() {
         return priority;
     }
-    
-    @Override
-    public Point2D getPosition() {
-        Point2D start = getStart().getPosition();
-        Point2D end = getEnd().getPosition();
-        return Helpers.pointBetween(start, end);
-    }
-    
-    @Override
-    public double getDistance(Point2D coordinates) {
-        return Helpers.distancePointToLine(coordinates, new Line2D.Double(getStart().getPosition(), getEnd().getPosition()));
-    }
-    
+
     @Override
     public Lane getSpawnLane() {
         return getFirstLane();
     }
-    
+
     @Override
     public Junction getStart() {
         return start;
     }
-    
+
     @Override
     public double getWeight() {
         double maxLenght = Double.POSITIVE_INFINITY;
@@ -113,12 +113,12 @@ public class Edge extends Element implements SpawnLocation, DirectedGraphEdge<Ed
         }
         return maxLenght / getPriority();
     }
-    
+
     @Override
     public void simulate(final double duration) {
         switchLane();
     }
-    
+
     /**
      * Agents switch lane.
      */
@@ -145,7 +145,7 @@ public class Edge extends Element implements SpawnLocation, DirectedGraphEdge<Ed
             });
         });
     }
-    
+
     @Override
     public String toString() {
         return String.format("Edge{ id: %d }", getId());

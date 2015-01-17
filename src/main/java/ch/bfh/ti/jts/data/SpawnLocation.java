@@ -7,7 +7,7 @@ package ch.bfh.ti.jts.data;
  * @author winki
  */
 public interface SpawnLocation {
-    
+
     /**
      * Returns the lane (lowest granular SpawnLocation) on which the agent
      * should spawn.

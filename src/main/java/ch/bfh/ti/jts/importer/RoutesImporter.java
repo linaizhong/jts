@@ -28,11 +28,11 @@ import ch.bfh.ti.jts.exceptions.ArgumentNullException;
  * @author winki
  */
 public class RoutesImporter extends Importer<Collection<SpawnInfo>> {
-    
+
     private final Map<String, Vehicle> vehicles = new LinkedHashMap<String, Vehicle>();
     private Net                        net;
     private Collection<SpawnInfo>      routes;
-    
+
     @Override
     protected Collection<SpawnInfo> extractData(final Document document) {
         routes = new LinkedList<SpawnInfo>();
@@ -47,11 +47,11 @@ public class RoutesImporter extends Importer<Collection<SpawnInfo>> {
             } else if (node.getNodeName().equals("flow")) {
                 extractFlow(node);
             }
-            
+
         }
         return routes;
     }
-    
+
     private void extractFlow(final Node node) {
         if (node == null) {
             throw new ArgumentNullException("node");
@@ -73,7 +73,7 @@ public class RoutesImporter extends Importer<Collection<SpawnInfo>> {
         final SpawnInfo route = new Flow(vehicle, routeStart, routeEnd, departureSpeed, arrivalSpeed, frequency);
         routes.add(route);
     }
-    
+
     private String extractRouteEdges(final Node node) {
         if (node == null) {
             throw new ArgumentNullException("node");
@@ -88,7 +88,7 @@ public class RoutesImporter extends Importer<Collection<SpawnInfo>> {
         }
         return routeEdges;
     }
-    
+
     private String extractRouteJunctions(final Node node) {
         if (node == null) {
             throw new ArgumentNullException("node");
@@ -103,7 +103,7 @@ public class RoutesImporter extends Importer<Collection<SpawnInfo>> {
         }
         return routeEdges;
     }
-    
+
     private void extractVecicle(final Node node) {
         if (node == null) {
             throw new ArgumentNullException("node");
@@ -124,15 +124,15 @@ public class RoutesImporter extends Importer<Collection<SpawnInfo>> {
         final String edgeIdEnd = edges[edges.length - 1];
         final Edge routeStart = (Edge) net.getElementStream(Edge.class).filter(x -> x.getName().equals(edgeIdStart)).findFirst().orElse(null);
         final Edge routeEnd = (Edge) net.getElementStream(Edge.class).filter(x -> x.getName().equals(edgeIdEnd)).findFirst().orElse(null);
-        
+
         // take junctions for spawning
         final Junction jStart = routeStart.getStart();
         final Junction jEnd = routeEnd.getEnd();
-        
+
         final SpawnInfo route = new Route(vehicle, jStart, jEnd, departureTime, departurePos, departureSpeed, arrivalPos, arrivalSpeed);
         routes.add(route);
     }
-    
+
     private void extractVecicleType(final Node node) {
         if (node == null) {
             throw new ArgumentNullException("node");
@@ -146,7 +146,7 @@ public class RoutesImporter extends Importer<Collection<SpawnInfo>> {
         final Vehicle vehicle = new Vehicle(-decel, accel, 0, maxSpeed, length, agent);
         vehicles.put(id, vehicle);
     }
-    
+
     public void setNet(final Net net) {
         this.net = net;
     }

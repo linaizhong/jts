@@ -18,12 +18,12 @@ import java.util.stream.Stream;
  *            object type to hold
  */
 public class Layers<T> implements Serializable {
-    
+
     private static final long                 serialVersionUID = 1L;
-    
+
     private final Map<Integer, Collection<T>> layers           = new HashMap<Integer, Collection<T>>();
     private final SortedSet<Integer>          layerKeys        = new TreeSet<>();
-    
+
     public void addLayerable(final int layer, final T layerable) {
         if (layerable == null) {
             throw new IllegalArgumentException("layerable");
@@ -37,18 +37,18 @@ public class Layers<T> implements Serializable {
         // add layerable to layer
         layers.get(layer).add(layerable);
     }
-    
+
     public Iterable<Integer> getLayersIterator() {
         return layerKeys;
     }
-    
+
     public Stream<T> getLayerStream(final Integer layer) throws IndexOutOfBoundsException {
         if (!layerKeys.contains(layer)) {
             throw new IndexOutOfBoundsException("layer");
         }
         return layers.get(layer).stream();
     }
-    
+
     public void removeLayerable(final int layer, final T layerable) {
         if (!layers.containsKey(layer)) {
             throw new IndexOutOfBoundsException("layer");

@@ -13,7 +13,7 @@ import ch.bfh.ti.jts.data.Net;
 
 /**
  * GPS class that implements the dijekstra algorithm to find shortest paths.
- * 
+ *
  * @author Enteee
  * @author winki
  * @param <V>
@@ -108,6 +108,16 @@ public class GPS<V extends DirectedGraphVertex<V, E>, E extends DirectedGraphEdg
         return previous;
     }
     
+    /**
+     * Get the next edge on the path from vertice "from" to vertice "to"
+     * 
+     * @param from
+     *            start
+     * @param to
+     *            destination
+     * @return next edge if "from" and "to" are in the same connected graph,
+     *         {@link Optional#empty()} otherwise.
+     */
     public Optional<E> getNextEdge(final V from, final V to) {
         Optional<E> edgeBetween = Optional.empty();
         final List<V> path = routes.get(from).get(to);

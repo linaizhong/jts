@@ -1,11 +1,12 @@
 package ch.bfh.ti.jts.importer;
 
+import static ch.bfh.ti.jts.utils.Helpers.convert;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import static ch.bfh.ti.jts.utils.Helpers.convert;
 
 /**
  * Abstract class for XML file importers.
@@ -16,12 +17,12 @@ import static ch.bfh.ti.jts.utils.Helpers.convert;
  *            type of the imported class file.
  */
 public abstract class Importer<T> {
-    
+
     private DocumentBuilderFactory documentBuilderFactory;
     private DocumentBuilder        documentBuilder;
     private Document               document;
     private T                      data;
-    
+
     public Importer() {
         try {
             documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -30,7 +31,7 @@ public abstract class Importer<T> {
             throw new RuntimeException(ex);
         }
     }
-    
+
     /**
      * Abstract method that handles the data extraction.
      *
@@ -39,7 +40,7 @@ public abstract class Importer<T> {
      * @return object representation of the imported file
      */
     abstract T extractData(final Document document);
-    
+
     /**
      * Get the attribute value of a node with the specified type.
      *
@@ -66,7 +67,7 @@ public abstract class Importer<T> {
         }
         return output;
     }
-    
+
     /**
      * Imports data from a file into an object representation.
      *

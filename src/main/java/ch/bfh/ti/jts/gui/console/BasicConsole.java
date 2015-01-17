@@ -16,7 +16,7 @@ import ch.bfh.ti.jts.utils.Config;
  * @author winki
  */
 public abstract class BasicConsole implements Console {
-    
+
     private final static String PROMPT            = "jts>";
     private final static String CURSOR            = "█";
     /**
@@ -30,11 +30,11 @@ public abstract class BasicConsole implements Console {
     private Font                font;
     private final Queue<String> lines             = new ConcurrentLinkedQueue<String>();
     private final StringBuffer  buffer            = new StringBuffer();
-    
+
     public BasicConsole() {
         font = new Font(Config.getInstance().getValue("console.font.family", "Courier New"), Font.PLAIN, Config.getInstance().getInt("console.font.size", 14, 1, 100));
     }
-    
+
     @Override
     public void executeCommand(final String line) {
         write(PROMPT + line);
@@ -42,13 +42,13 @@ public abstract class BasicConsole implements Console {
             parseCommand(line);
         }
     }
-    
+
     @Override
     public int getRenderLayer() {
         // doesn't matter at the moment
         return Integer.MAX_VALUE;
     }
-    
+
     @Override
     public void keyTyped(final char character) {
         if (character >= 32 && character <= 127) {
@@ -61,26 +61,21 @@ public abstract class BasicConsole implements Console {
             pressEnter();
         }
     }
-    
-    @Override
-    public void stringTyped(String string) {
-        writsString(string);
-    }
-    
+
     protected abstract void parseCommand(final String line);
-    
+
     private void pressEnter() {
         final String line = buffer.toString();
         buffer.setLength(0);
         executeCommand(line);
     }
-    
+
     private void removeChar() {
         if (buffer.length() > 0) {
             buffer.deleteCharAt(buffer.length() - 1);
         }
     }
-    
+
     @Override
     public void render(final Graphics2D g) {
         g.setColor(Color.BLACK);
@@ -97,11 +92,16 @@ public abstract class BasicConsole implements Console {
         }
         g.drawString(output, POS_X, POS_Y + yoffset);
     }
-    
+
     protected void setFont(final Font font) {
         this.font = font;
     }
-    
+
+    @Override
+    public void stringTyped(final String string) {
+        writsString(string);
+    }
+
     @Override
     public void write(final String text) {
         if (text == null) {
@@ -121,11 +121,11 @@ public abstract class BasicConsole implements Console {
             }
         }
     }
-    
+
     private void writeChar(final char character) {
         buffer.append(character);
     }
-    
+
     private void writsString(final String string) {
         buffer.append(string);
     }

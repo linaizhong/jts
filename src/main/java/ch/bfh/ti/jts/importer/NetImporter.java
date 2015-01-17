@@ -26,14 +26,14 @@ import ch.bfh.ti.jts.gui.PolyShape;
  * @author winki
  */
 public class NetImporter extends Importer<Net> {
-    
+
     private Net                         net;
     private final Collection<Node>      edgesNodes      = new LinkedList<Node>();
     private final Collection<Node>      connectionNodes = new LinkedList<Node>();
     private final Map<String, Junction> junctions       = new LinkedHashMap<String, Junction>();
     private final Map<String, Edge>     edges           = new LinkedHashMap<String, Edge>();
     private final Map<String, Lane>     lanes           = new LinkedHashMap<String, Lane>();
-    
+
     private void extractConnection(final Node node) {
         if (node == null) {
             throw new ArgumentNullException("node");
@@ -46,7 +46,7 @@ public class NetImporter extends Importer<Net> {
         final Lane laneTo = lanes.get(String.format("%s_%s", to, toLane));
         laneFrom.getLanes().add(laneTo);
     }
-    
+
     @Override
     protected Net extractData(final Document document) {
         net = new Net();
@@ -76,7 +76,7 @@ public class NetImporter extends Importer<Net> {
         }
         return net;
     }
-    
+
     private void extractEdge(final Node node) {
         if (node == null) {
             throw new ArgumentNullException("node");
@@ -98,7 +98,7 @@ public class NetImporter extends Importer<Net> {
             }
         }
     }
-    
+
     private void extractJunction(final Node node) {
         if (node == null) {
             throw new ArgumentNullException("node");
@@ -106,14 +106,14 @@ public class NetImporter extends Importer<Net> {
         final String id = getAttribute(node, "id", String.class);
         final double x = getAttribute(node, "x", Double.class);
         // invert y coordinates (different origin in C++ and Java)!
-        final double y = -getAttribute(node, "y", Double.class);        
+        final double y = -getAttribute(node, "y", Double.class);
         final PolyShape polyShape = new PolyShape(getAttribute(node, "shape", String.class));
         final Shape shape = polyShape.getShape();
         final Junction junction = new Junction(id, x, y, shape);
         junctions.put(id, junction);
         net.addElement(junction);
     }
-    
+
     private void extractLane(final Node node, final Edge edge) {
         if (node == null) {
             throw new ArgumentNullException("node");
@@ -127,7 +127,7 @@ public class NetImporter extends Importer<Net> {
         net.addElement(lane);
         lanes.put(id, lane);
     }
-    
+
     private void extractLocation(final Node node) {
     }
 }

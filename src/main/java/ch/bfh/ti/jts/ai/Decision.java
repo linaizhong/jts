@@ -12,9 +12,9 @@ import ch.bfh.ti.jts.data.Lane;
  * @author winki
  */
 public class Decision implements Serializable {
-    
+
     private static final long serialVersionUID = 1L;
-    
+
     /**
      * Acceleration for the next simulation step.
      */
@@ -31,44 +31,44 @@ public class Decision implements Serializable {
      * Long-term decision. Used with GPS. Can be null.
      */
     private Junction          destination;
-    
+
     public Decision() {
         acceleration = 0.0;
         laneChange = LaneChange.NONE;
     }
-    
+
     public double getAcceleration() {
         return acceleration;
     }
-    
-    public LaneChange getLaneChange() {
-        return laneChange;
-    }
-    
-    public Lane getTurning() {
-        return turning;
-    }
-    
-    public void setAcceleration(final double acceleration) {
-        this.acceleration = acceleration;
-    }
-    
-    public void setLaneChange(final LaneChange laneChange) {
-        this.laneChange = laneChange;
-    }
-    
-    public void setTurning(final Lane turning) {
-        this.turning = turning;
-    }
-    
-    public void setDestination(Junction destination) {
-        this.destination = destination;
-    }
-    
+
     public Junction getDestination() {
         return destination;
     }
-    
+
+    public LaneChange getLaneChange() {
+        return laneChange;
+    }
+
+    public Lane getTurning() {
+        return turning;
+    }
+
+    public void setAcceleration(final double acceleration) {
+        this.acceleration = acceleration;
+    }
+
+    public void setDestination(final Junction destination) {
+        this.destination = destination;
+    }
+
+    public void setLaneChange(final LaneChange laneChange) {
+        this.laneChange = laneChange;
+    }
+
+    public void setTurning(final Lane turning) {
+        this.turning = turning;
+    }
+
     @Override
     public String toString() {
         return String.format("Decision{ acceleration: %.2f, destination: %s, laneChange: %s, turning: %s }", acceleration, destination, laneChange, turning);

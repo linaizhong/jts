@@ -38,11 +38,11 @@ import ch.bfh.ti.jts.utils.Config;
  * @author winki
  */
 public class Lane extends Element implements SpawnLocation, Simulatable, Renderable {
-    
+
     private static final long                      serialVersionUID  = 1L;
     private static final Logger                    log               = LogManager.getLogger(Lane.class);
     public final static boolean                    LANE_RENDER_INFOS = Config.getInstance().getBool("lane.render.infos", false);
-    
+
     private final Edge                             edge;
     private final int                              index;
     private final double                           speed;
@@ -56,16 +56,16 @@ public class Lane extends Element implements SpawnLocation, Simulatable, Rendera
      * Agents on line. Key: RelativePosition, Value: List of @{link Agent}s
      */
     private final NavigableMap<Double, Set<Agent>> laneAgents;
-    
+
     /**
      * Agents which have reached the end of the lane.
      */
     final Set<Agent>                               edgeLeaveCandidates;
-    
+
     private double                                 spaceMeanSpeed;
     private double                                 timeMeanSpeed;
     private double                                 density;
-    
+
     public Lane(final String name, final Edge edge, final int index, final double speed, final double length, final PolyShape polyShape) {
         super(name);
         if (edge == null) {
@@ -84,14 +84,14 @@ public class Lane extends Element implements SpawnLocation, Simulatable, Rendera
         laneAgents = new TreeMap<>();
         edgeLeaveCandidates = new HashSet<>();
     }
-    
+
     public void addEdgeLeaveCandidate(final Agent agent) {
         if (agent == null) {
             throw new IllegalArgumentException("agent");
         }
         edgeLeaveCandidates.add(agent);
     }
-    
+
     /**
      * Add a agent to the list of agents on this list.
      *
@@ -110,11 +110,11 @@ public class Lane extends Element implements SpawnLocation, Simulatable, Rendera
         }
         agentsAtPosition.add(agent);
     }
-    
+
     public boolean comesFrom(final Junction junction) {
         return getEdge().getStart() == junction;
     }
-    
+
     /**
      * Gets a flat collection of all agents on this lane in ascending order.
      *
@@ -129,66 +129,51 @@ public class Lane extends Element implements SpawnLocation, Simulatable, Rendera
         }
         return list;
     }
-    
-    public Edge getEdge() {
-        return edge;
+
+    private Color getColor() {
+        final String mode = Config.getInstance().getEnum("lane.render.colormode", new String[] { "normal", "density", "timemeanspeed", "spacemeanspeed" });
+        if ("normal".equals(mode)) {
+            return Color.BLACK;
+        }
+        if ("density".equals(mode)) {
+            return getHeatColor(density, 0.0, 0.14);
+        }
+        if ("timemeanspeed".equals(mode)) {
+            return getHeatColor(timeMeanSpeed, 0.0, 33.3);
+        }
+        if ("spacemeanspeed".equals(mode)) {
+            return getHeatColor(spaceMeanSpeed, 0.0, 33.3);
+        }
+        throw new RuntimeException("illegal color mode");
     }
-    
-    @Override
-    public Point2D getPosition() {
-        Point2D position = getEdge().getPosition();
-        return new Point2D.Double(position.getX(), position.getY() - 15 - 5 * getIndex());
-    }
-    
-    public Set<Agent> getEdgeLeaveCandidates() {
-        return edgeLeaveCandidates;
-    }
-    
-    public boolean isValidOutgoingLane(Lane lane) {
-        return lanes.contains(lane);
-    }
-    
-    public int getIndex() {
-        return index;
-    }
-    
+
     private Set<SimpleEntry<Lane, Lane>> getConnections() {
-        Junction end = getEdge().getEnd();
-        Set<SimpleEntry<Lane, Lane>> connections = new HashSet<>();
-        for (Lane incoming : end.getIncomingLanes()) {
-            for (Lane outgoing : incoming.getLanes()) {
+        final Junction end = getEdge().getEnd();
+        final Set<SimpleEntry<Lane, Lane>> connections = new HashSet<>();
+        for (final Lane incoming : end.getIncomingLanes()) {
+            for (final Lane outgoing : incoming.getLanes()) {
                 connections.add(new SimpleEntry<Lane, Lane>(incoming, outgoing));
             }
         }
         return connections;
     }
-    
-    public boolean isBranch() {
-        return getLanes().size() > 1;
+
+    public Edge getEdge() {
+        return edge;
     }
-    
-    public boolean isMerging() {
-        // all connections on next junction
-        Set<SimpleEntry<Lane, Lane>> connections = getConnections();
-        // evaluate...
-        Collection<Lane> options = getLanes();
-        if (options.size() == 0) {
-            return false;
-        } else if (options.size() > 0) {
-            for (Lane option : options) {
-                long count = connections.stream().filter(x -> x.getValue().equals(option)).count();
-                if (count > 1) {
-                    return true;
-                }
-            }
-        }
-        return false;
+
+    public Set<Agent> getEdgeLeaveCandidates() {
+        return edgeLeaveCandidates;
     }
-    
+
+    public int getIndex() {
+        return index;
+    }
+
     public Map<Agent, Optional<Lane>> getLaneChangeCandidates() {
         final Map<Agent, Optional<Lane>> changeAgents = new ConcurrentHashMap<>();
         final Set<Agent> laneChangeCandidates = new HashSet<>();
-        
+
         // TODO: this as stream
         for (final Set<Agent> agents : laneAgents.values()) {
             for (final Agent agent : agents) {
@@ -201,29 +186,29 @@ public class Lane extends Element implements SpawnLocation, Simulatable, Rendera
             switch (agent.getDecision().getLaneChange()) {
                 case RIGHT :
                     changeAgents.put(agent, getRightLane());
-                break;
+                    break;
                 case LEFT :
                     changeAgents.put(agent, getLeftLane());
-                break;
+                    break;
                 default :
                     throw new IllegalAccessError("lane change direction");
             }
         });
         return changeAgents;
     }
-    
+
     public Collection<Lane> getLanes() {
         return lanes;
     }
-    
+
     public Optional<Lane> getLeftLane() {
         return getEdge().getLanes().stream().filter(x -> x.index == index + 1).findAny();
     }
-    
+
     public double getLength() {
         return length;
     }
-    
+
     /**
      * Returns the next agents on line in front of a agent on the same lane.
      *
@@ -241,13 +226,13 @@ public class Lane extends Element implements SpawnLocation, Simulatable, Rendera
         Set<Agent> nextAgentsOnLine = new TreeSet<>();
         try {
             nextAgentsOnLine = getNextAgentsOnLine(agent.getRelativeLanePosition());
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             log.info("agent off the line: can't lookup next agents on line");
         }
-        
+
         return nextAgentsOnLine;
     }
-    
+
     /**
      * Returns the next agents on line.
      *
@@ -266,11 +251,17 @@ public class Lane extends Element implements SpawnLocation, Simulatable, Rendera
         }
         return nextAgents;
     }
-    
+
     public PolyShape getPolyShape() {
         return polyShape;
     }
-    
+
+    @Override
+    public Point2D getPosition() {
+        final Point2D position = getEdge().getPosition();
+        return new Point2D.Double(position.getX(), position.getY() - 15 - 5 * getIndex());
+    }
+
     /**
      * Gets the relative position on this lane from an absolute position in
      * meters.
@@ -285,31 +276,57 @@ public class Lane extends Element implements SpawnLocation, Simulatable, Rendera
         }
         return absolutePosition / getLength();
     }
-    
+
     public Optional<Lane> getRightLane() {
         return getEdge().getLanes().stream().filter(x -> x.index == index - 1).findAny();
     }
-    
+
     @Override
     public Lane getSpawnLane() {
         return this;
     }
-    
+
     public double getSpeed() {
         return speed;
     }
-    
+
     public boolean goesTo(final Junction junction) {
         return getEdge().getEnd() == junction;
     }
-    
+
+    public boolean isBranch() {
+        return getLanes().size() > 1;
+    }
+
+    public boolean isMerging() {
+        // all connections on next junction
+        final Set<SimpleEntry<Lane, Lane>> connections = getConnections();
+        // evaluate...
+        final Collection<Lane> options = getLanes();
+        if (options.size() == 0) {
+            return false;
+        } else if (options.size() > 0) {
+            for (final Lane option : options) {
+                final long count = connections.stream().filter(x -> x.getValue().equals(option)).count();
+                if (count > 1) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean isValidOutgoingLane(final Lane lane) {
+        return lanes.contains(lane);
+    }
+
     public void removeEdgeLeaveCandidate(final Agent agent) {
         if (agent == null || !edgeLeaveCandidates.contains(agent)) {
             throw new IllegalArgumentException("agent");
         }
         edgeLeaveCandidates.remove(agent);
     }
-    
+
     /**
      * Remove agent from this lane
      *
@@ -324,53 +341,36 @@ public class Lane extends Element implements SpawnLocation, Simulatable, Rendera
         if (agentsAtPosition != null) {
             agentsAtPosition.remove(agent);
         }
-        
+
     }
-    
-    private Color getColor() {
-        String mode = Config.getInstance().getEnum("lane.render.colormode", new String[] { "normal", "density", "timemeanspeed", "spacemeanspeed" });
-        if ("normal".equals(mode)) {
-            return Color.BLACK;
-        }
-        if ("density".equals(mode)) {
-            return getHeatColor(density, 0.0, 0.14);
-        }
-        if ("timemeanspeed".equals(mode)) {
-            return getHeatColor(timeMeanSpeed, 0.0, 33.3);
-        }
-        if ("spacemeanspeed".equals(mode)) {
-            return getHeatColor(spaceMeanSpeed, 0.0, 33.3);
-        }
-        throw new RuntimeException("illegal color mode");
-    }
-    
+
     @Override
     public void render(final Graphics2D g) {
         g.setStroke(new BasicStroke(3));
         g.setColor(getColor());
         g.draw(polyShape.getShape());
-        
+
         if (LANE_RENDER_INFOS) {
             g.setFont(App.FONT);
             g.setColor(getColor());
-            g.drawString(this.toString(), (int) getPosition().getX(), (int) getPosition().getY());
+            g.drawString(toString(), (int) getPosition().getX(), (int) getPosition().getY());
         }
     }
-    
+
     @Override
     public void simulate(final double duration) {
         final NavigableMap<Double, Set<Agent>> oldAgents = new TreeMap<>(laneAgents);
         laneAgents.clear();
-        
-        List<Agent> allAgents = new LinkedList<>();
-        
+
+        final List<Agent> allAgents = new LinkedList<>();
+
         // go through agents in order
         while (oldAgents.size() > 0) {
             final Entry<Double, Set<Agent>> entry = oldAgents.pollFirstEntry();
             for (final Agent thisAgent : entry.getValue()) {
-                
+
                 allAgents.add(thisAgent);
-                
+
                 if (App.getInstance().getSimulation().isAllowCollisions()) {
                     // check for collision with next, if there is a next and
                     // thisAgent was fully moved
@@ -388,7 +388,7 @@ public class Lane extends Element implements SpawnLocation, Simulatable, Rendera
                         }
                     }
                 }
-                
+
                 // add this agent again
                 if (thisAgent.isEdgeLeaveCandidate()) {
                     addEdgeLeaveCandidate(thisAgent);
@@ -397,13 +397,13 @@ public class Lane extends Element implements SpawnLocation, Simulatable, Rendera
                 }
             }
         }
-        
+
         // collect some statistics informations
         timeMeanSpeed = Statistics.getTimeMeanSpeed(allAgents);
         spaceMeanSpeed = Statistics.getSpaceMeanSpeed(allAgents);
         density = Statistics.getDensity(allAgents.size(), getLength());
     }
-    
+
     @Override
     public String toString() {
         return String.format("Lane{ id: %d, name: %s, density: %.2f, v_sms: %.2f, v_tms: %.2f }", getId(), getName(), density, spaceMeanSpeed, timeMeanSpeed);

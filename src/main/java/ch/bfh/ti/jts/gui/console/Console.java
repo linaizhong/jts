@@ -9,7 +9,7 @@ import ch.bfh.ti.jts.gui.Renderable;
  * @author winki
  */
 public interface Console extends Renderable {
-    
+
     /**
      * Write a line to the console which will be executed.
      *
@@ -17,7 +17,7 @@ public interface Console extends Renderable {
      *            line to be executed
      */
     void executeCommand(final String line);
-    
+
     /**
      * Key is typed on the console.
      *
@@ -25,7 +25,7 @@ public interface Console extends Renderable {
      *            typed character
      */
     void keyTyped(final char character);
-    
+
     /**
      * String is typed on the console.
      *
@@ -33,7 +33,7 @@ public interface Console extends Renderable {
      *            typed string
      */
     void stringTyped(final String string);
-    
+
     /**
      * Write a line to the console which is not being executed (just output).
      *

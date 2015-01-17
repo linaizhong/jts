@@ -27,15 +27,15 @@ import ch.bfh.ti.jts.utils.graph.DirectedGraphVertex;
  * @author winki
  */
 public class Junction extends Element implements SpawnLocation, DirectedGraphVertex<Junction, Edge>, Renderable, Simulatable {
-    
+
     private static final long      serialVersionUID = 1L;
     private static final Logger    log              = LogManager.getLogger(Junction.class);
-    
+
     private final double           x;
     private final double           y;
     private final Shape            shape;
     private final Collection<Edge> edges;
-    
+
     public Junction(final String name, final double x, final double y, final Shape shape) {
         super(name);
         if (shape == null) {
@@ -46,11 +46,11 @@ public class Junction extends Element implements SpawnLocation, DirectedGraphVer
         this.shape = shape;
         edges = new LinkedList<Edge>();
     }
-    
+
     public void addEdge(final Edge edge) {
         edges.add(edge);
     }
-    
+
     @Override
     public Optional<Edge> getEdgeBetween(final Junction vertex) {
         Optional<Edge> edgeBetween = Optional.empty();
@@ -62,32 +62,37 @@ public class Junction extends Element implements SpawnLocation, DirectedGraphVer
         }
         return edgeBetween;
     }
-    
+
+    public Collection<Edge> getIncomingEdges() {
+        return edges.stream().filter(edge -> {
+            return edge.goesTo(this);
+        }).collect(Collectors.toList());
+    }
+
+    public Collection<Lane> getIncomingLanes() {
+        return edges.stream().filter(edge -> {
+            return edge.goesTo(this);
+        }).flatMap(x -> x.getLanes().stream()).collect(Collectors.toList());
+    }
+
     @Override
     public Collection<Edge> getOutgoingEdges() {
         return edges.stream().filter(edge -> {
             return edge.comesFrom(this);
         }).collect(Collectors.toList());
     }
-    
+
     public Collection<Lane> getOutgoingLanes() {
         return edges.stream().filter(edge -> {
             return edge.comesFrom(this);
         }).flatMap(x -> x.getLanes().stream()).collect(Collectors.toList());
     }
-    
-    public Collection<Edge> getIncomingEdges() {
-        return edges.stream().filter(edge -> {
-            return edge.goesTo(this);
-        }).collect(Collectors.toList());
+
+    @Override
+    public Point2D getPosition() {
+        return new Point2D.Double(x, y);
     }
-    
-    public Collection<Lane> getIncomingLanes() {
-        return edges.stream().filter(edge -> {
-            return edge.goesTo(this);
-        }).flatMap(x -> x.getLanes().stream()).collect(Collectors.toList());
-    }
-    
+
     @Override
     public Collection<Junction> getReachableVertices() {
         final Collection<Junction> neighbours = new HashSet<>();
@@ -96,7 +101,7 @@ public class Junction extends Element implements SpawnLocation, DirectedGraphVer
         });
         return neighbours;
     }
-    
+
     @Override
     public Lane getSpawnLane() {
         final Collection<Edge> edges = getOutgoingEdges();
@@ -108,25 +113,14 @@ public class Junction extends Element implements SpawnLocation, DirectedGraphVer
         }
         return null;
     }
-    
-    @Override
-    public Point2D getPosition() {
-        return new Point2D.Double(x, y);
-    }
-    
+
     @Override
     public void render(final Graphics2D g) {
         g.setStroke(new BasicStroke(1));
         g.setColor(Color.BLACK);
         g.fill(shape);
     }
-    
-    private void switchLane(Agent agent, Lane nextLane) {
-        agent.getLane().removeEdgeLeaveCandidate(agent);
-        agent.setNextEdgeLane(nextLane);
-        nextLane.addLaneAgent(agent);
-    }
-    
+
     @Override
     public void simulate(final double duration) {
         // move incoming agents over junction
@@ -148,10 +142,10 @@ public class Junction extends Element implements SpawnLocation, DirectedGraphVer
                 }
                 try {
                     // check switch edge...
-                    
+
                     // 1. next edge lane?
-                    Decision decision = agent.getDecision();
-                    Lane nextEdgeLane = decision.getTurning();
+                    final Decision decision = agent.getDecision();
+                    final Lane nextEdgeLane = decision.getTurning();
                     if (nextEdgeLane != null) {
                         // agent wants to switch on a specified lane
                         if (agent.getLane().isValidOutgoingLane(nextEdgeLane)) {
@@ -163,20 +157,20 @@ public class Junction extends Element implements SpawnLocation, DirectedGraphVer
                             log.warn(String.format("%s made no valid decision for next lane", agent));
                         }
                     }
-                    
+
                     // 2. destination?
-                    Junction destination = decision.getDestination();
+                    final Junction destination = decision.getDestination();
                     if (destination != null) {
                         // agent has a destination
                         // use gps to get there...
-                        Junction lastJunction = agent.getLane().getEdge().getEnd();
+                        final Junction lastJunction = agent.getLane().getEdge().getEnd();
                         if (lastJunction == null) {
                             throw new NullPointerException("lastJunction");
                         }
-                        Edge nextEdge = getNet().getGPS().getNextEdge(lastJunction, destination).orElse(null);
+                        final Edge nextEdge = getNet().getGPS().getNextEdge(lastJunction, destination).orElse(null);
                         if (nextEdge != null) {
                             // take first lane
-                            Lane defaultLane = nextEdge.getDefaultLane(agent.getLane());
+                            final Lane defaultLane = nextEdge.getDefaultLane(agent.getLane());
                             if (defaultLane != null) {
                                 // switch to this lane
                                 switchLane(agent, defaultLane);
@@ -197,7 +191,13 @@ public class Junction extends Element implements SpawnLocation, DirectedGraphVer
             });
         });
     }
-    
+
+    private void switchLane(final Agent agent, final Lane nextLane) {
+        agent.getLane().removeEdgeLeaveCandidate(agent);
+        agent.setNextEdgeLane(nextLane);
+        nextLane.addLaneAgent(agent);
+    }
+
     @Override
     public String toString() {
         return String.format("Junction{ id: %d }", getId());

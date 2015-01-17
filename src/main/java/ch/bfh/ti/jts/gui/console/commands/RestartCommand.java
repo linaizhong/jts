@@ -8,7 +8,7 @@ import com.beust.jcommander.Parameters;
 
 @Parameters(commandDescription = "Restart the simulation")
 public class RestartCommand extends Command {
-    
+
     @Override
     public Optional<String> execute(final Object executor) {
         final App app = (App) executor;
@@ -18,12 +18,12 @@ public class RestartCommand extends Command {
         app.restart();
         return Optional.of("simulation restarted");
     }
-    
+
     @Override
     public String getName() {
         return "restart";
     }
-    
+
     @Override
     public Class<?> getTargetType() {
         return App.class;
