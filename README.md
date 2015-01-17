@@ -132,7 +132,7 @@ We decided to model not only straight roads with multiple lanes but also junctio
 
 ### Parallelization
 
-Jts is structured in layers. The class which keeps track of them is [Layers.java](src/main/java/ch/bfh/ti/jts/utils/layers/Layers.java). Its usage is shown below.
+Jts is structured in layers. The class which keeps track of them is [Layers.java][Layers.java]. Its usage is shown below.
 
 ![layers class](https://raw.githubusercontent.com/winki/jts/master/doc/layers.png)
 
@@ -223,11 +223,20 @@ In jts we heavily use the with java 8 newly introduces [streams](http://docs.ora
 
 ### Dijekstra for path finding
 
+[GPS][GPS.java] implements a working dijekstra algorithm for [Net][Net.java]. The interfaces [DirectedGraphVertex][DirectedGraphVertex.java] and [DirectedGraphEdge][DirectedGraphEdge.java] make the dijekstra impelemntation independent from the data classes.
+
 ![dijekstra](https://raw.githubusercontent.com/winki/jts/master/doc/dijekstra.png)
+
+* [GPS][Gps.java] does most of the computation during construction.
+* Once created [GPS][GPS.java] can not be adapted to learn an other [Net][Net.java].
+* Due to the generic nature of [DirectedGraphVertex][DirectedGraphVertex.java] and [DirectedGraphEdge][DirectedGraphEdge.java] any dataclass could becose a component of a graph.
+* [Junction][Junction.java] uses [GPS][GPS.java] for routing [Agents][Agent.java] to edges.
 
 ### Wall clock & simulation time
 
-### 
+The actual simulation of the [Net][Net.java] advances in discrete quantities of time. Meanwhile the [Window][Window.java] advances according to the time the user experiences in real life. Those two components are decoupled with the getWallClockSimulationState() method in [Simulation][Simulation.java]
+
+![times](https://raw.githubusercontent.com/winki/jts/master/doc/times.png)
 
 ### Agent intelligence
 
@@ -421,6 +430,7 @@ Enteee
 - [x] Agent despawning on no junction cross
 - [x] Refactor element removal -> Advanced removal (elements)
 
+winki
 
 ## Open issues
 
@@ -460,6 +470,11 @@ This software and the underlying source code is licensed under the [MIT license]
 [Lane.java]:src/main/java/ch/bfh/ti/jts/data/Lane.java
 [Agent.java]:src/main/java/ch/bfh/ti/jts/data/Agent.java
 
+[Layers.java]:src/main/java/ch/bfh/ti/jts/utils/layers/Layers.java
+
+[GPS.java]:src/main/java/ch/bfh/ti/jts/utils/graph/GPS.java
+[DirectedGraphVertex.java]:src/main/java/ch/bfh/ti/jts/utils/graph/DirectedGraphVertex.java
+[DirectedGraphEdge.java]:src/main/java/ch/bfh/ti/jts/utils/graph/DirectedGraphEdge.java
 
 [osm]:http://www.openstreetmap.ch/
 [projoutl]:https://staff.hti.bfh.ch/swp1/Projekt_1/projects.html
