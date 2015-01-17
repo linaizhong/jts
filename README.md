@@ -44,7 +44,6 @@ This project is currently under heavy developement.
   - [Multithreading](#multithreading)
   - [Dijekstra for path finding](#dijekstra-for-path-finding)
   - [Wall clock & simulation time](#wall-clock-&-simulation-time)
-  - [](#)
   - [Agent intelligence](#agent-intelligence)
 - [Journal](#journal)
   - [Calendar week 39](#calendar-week-39)
